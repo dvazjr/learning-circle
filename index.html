@@ -1,0 +1,331 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Learning Circle</title>
+<meta name="description" content="Walk a kairos moment through the six steps of the Learning Circle: observe, reflect, discuss, plan, account, act.">
+<meta name="theme-color" content="#F7F9FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13171B" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Circle">
+<meta name="mobile-web-app-capable" content="yes">
+<meta property="og:title" content="The Learning Circle">
+<meta property="og:description" content="Hear it. Do it. A fillable Learning Circle for your group.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light dark;
+  --ink:#101B26;
+  --ink-soft:#41505E;
+  --muted:#75838F;
+  --paper:#F7F9FB;
+  --card:#FFFFFF;
+  --field:#FFFFFF;
+  --line:#DCE3E9;
+  --hear:#1F4E8C;
+  --hear-bg:#E4EDF9;
+  --do:#7A4E0B;
+  --do-bg:#F8EDD8;
+  --mark:#B02333;
+  --mark-on:#FFFFFF;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Public Sans",system-ui,sans-serif;font-size:16px;line-height:1.6;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 64px}
+h1{font-family:Spectral,Georgia,serif;font-weight:600;font-size:28px;line-height:1.15;margin:0 0 4px;letter-spacing:-.01em}
+.sub{font-family:Spectral,Georgia,serif;font-style:italic;color:var(--ink-soft);margin:0 0 20px;font-size:16px}
+label{display:block;font-size:13px;font-weight:500;color:var(--ink-soft);margin-bottom:5px}
+input,textarea,button,select{font-family:inherit;font-size:16px;color:var(--ink)}
+input[type=text],input[type=date],textarea{
+  width:100%;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);
+  padding:11px 13px;line-height:1.5;
+}
+::placeholder{color:var(--muted);opacity:1}
+textarea{resize:vertical;min-height:110px}
+input:focus,textarea:focus,button:focus-visible,[role=button]:focus-visible{
+  outline:2px solid var(--hear);outline-offset:2px
+}
+.head{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:22px;box-shadow:0 1px 2px rgba(16,27,38,.04)}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:460px){.row{grid-template-columns:1fr 1fr}}
+.row>div{min-width:0}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;max-width:100%;height:44px}
+.field+.field{margin-top:12px}
+
+svg{display:block;width:100%;height:auto;max-width:420px;margin:0 auto}
+.node{cursor:pointer}
+.node circle{fill:var(--card);stroke:var(--line);stroke-width:1.5;transition:fill .15s,stroke .15s}
+.node text{font-family:"Public Sans",sans-serif;fill:var(--ink-soft);pointer-events:none}
+.node .num{font-size:11px}
+.node .nm{font-size:13px;font-weight:600;fill:var(--ink)}
+.node.hear.done circle{fill:var(--hear-bg);stroke:var(--hear)}
+.node.do.done circle{fill:var(--do-bg);stroke:var(--do)}
+.node.on circle{stroke-width:3}
+.node.hear.on circle{stroke:var(--hear)}
+.node.do.on circle{stroke:var(--do)}
+.ring{fill:none;stroke:var(--mark);stroke-width:1.5}
+.split{stroke:var(--mark);stroke-width:1;stroke-dasharray:5 6;opacity:.5}
+.ray{stroke:var(--mark);stroke-width:1.5}
+.halfnote{font-family:Spectral,Georgia,serif;font-size:15px;letter-spacing:.02em;fill:var(--ink)}
+.halfnote.h{fill:var(--ink)}
+.halfnote.d{fill:var(--ink)}
+.tiny{font-family:"Public Sans",sans-serif;font-size:12px;fill:var(--ink-soft)}
+.kx{fill:var(--mark);font-family:Spectral,serif;font-size:26px}
+.klabel{fill:var(--mark);font-family:Spectral,serif;font-size:15px;font-style:italic}
+
+.panel{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:14px;box-shadow:0 1px 2px rgba(16,27,38,.04)}
+.caret{position:absolute;top:-9px;width:16px;height:16px;background:var(--card);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:translateX(-50%) rotate(45deg);transition:left .2s ease}
+.ptop{display:flex;align-items:baseline;gap:9px;margin-bottom:2px}
+.pill{font-size:12px;font-weight:600;padding:1px 8px;border-radius:20px}
+.hear .pill,.pill.hear{background:var(--hear-bg);color:var(--hear)}
+.do .pill,.pill.do{background:var(--do-bg);color:var(--do)}
+.pname{font-family:Spectral,Georgia,serif;font-size:21px;font-weight:600}
+.pq{font-family:Spectral,Georgia,serif;font-size:17px;margin:0 0 12px;color:var(--ink)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
+button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;cursor:pointer;font-weight:500}
+button:hover{border-color:var(--ink-soft)}
+button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark)}
+.actions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+.actions button{flex:1 1 auto}
+.saved{margin-top:34px;border-top:1px solid var(--line);padding-top:18px}
+.saved h2{font-family:Spectral,serif;font-size:19px;font-weight:600;margin:0 0 10px}
+.item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px}
+.item .m{flex:1;min-width:0}
+.item .d{font-size:12px;color:var(--ink-soft)}
+.item .k{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item button{padding:6px 10px;font-size:13px}
+.empty{color:var(--ink-soft);font-size:15px;font-style:italic;font-family:Spectral,serif}
+.note{font-size:13px;color:var(--ink-soft);margin-top:8px}
+.sheet{display:none}
+.verse{font-family:Spectral,serif;font-style:italic;color:var(--ink-soft);font-size:14px;line-height:1.5;margin:18px 0 0;text-align:center}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --ink:#F4F7FA;
+    --ink-soft:#C6D0D9;
+    --muted:#8D9AA7;
+    --paper:#13171B;
+    --card:#1D232A;
+    --field:#11161B;
+    --line:#3C4650;
+    --hear:#9DC4F3;
+    --hear-bg:#1D3A5B;
+    --do:#EFC073;
+    --do-bg:#46320C;
+    --mark:#F28A95;
+    --mark-on:#28090D;
+  }
+}
+@media print{
+  :root{
+    --ink:#000;--ink-soft:#444;--muted:#666;--paper:#fff;--card:#fff;--field:#fff;
+    --line:#bbb;--hear:#1F4E8C;--hear-bg:#fff;--do:#7A4E0B;--do-bg:#fff;--mark:#B02333;--mark-on:#fff;
+  }
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .panel,.actions,.saved,.nav,svg,.head textarea,.head input{display:none}
+  .sheet{display:block}
+  .sheetrow{border-bottom:1px solid #ccc;padding:10px 0;break-inside:avoid}
+  .sheetrow h3{font-family:Spectral,serif;font-size:16px;margin:0 0 2px}
+  .sheetrow p{margin:0;font-size:14px}
+  .sheetrow .q{color:#555;font-style:italic;font-family:Spectral,serif}
+  .sheetrow .a{white-space:pre-wrap;min-height:34px;border-bottom:0}
+}
+</style>
+
+<div class="wrap">
+  <h1>The Learning Circle</h1>
+  <p class="sub">Hear it. Do it.</p>
+
+  <div class="head">
+    <div class="row">
+      <div class="field"><label for="date">Date</label><input type="date" id="date"></div>
+      <div class="field"><label for="who">Who's in the circle</label><input type="text" id="who" placeholder="Names, or your group"></div>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label for="kairos">The kairos — what landed?</label>      <input type="text" id="kairos" placeholder="A sermon point, a conflict, a verse, a hard week">
+    </div>
+  </div>
+
+  <svg viewBox="0 0 360 325" role="group" aria-label="Learning circle. A kairos moment interrupts the line of ordinary time at the top. Choose a step to fill in.">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--mark)"/>
+      </marker>
+    </defs>
+    <text x="180" y="80" text-anchor="middle" class="klabel">kairos</text>
+    <line class="ray" x1="34" y1="105" x2="322" y2="105" marker-end="url(#ar)"/>
+    <circle class="ring" cx="180" cy="205" r="100"/>
+    <line class="split" x1="180" y1="105" x2="180" y2="305"/>
+    <text x="180" y="105" text-anchor="middle" dominant-baseline="central" class="kx">✕</text>
+    <text x="222" y="198" text-anchor="middle" class="halfnote h">repent</text>
+    <text x="222" y="215" text-anchor="middle" class="tiny">hearing</text>
+    <text x="138" y="198" text-anchor="middle" class="halfnote d">believe</text>
+    <text x="138" y="215" text-anchor="middle" class="tiny">doing</text>
+    <g id="nodes"></g>
+  </svg>
+
+  <div class="panel" id="panel">
+    <div class="caret" id="caret" style="left:68%"></div>
+    <div class="ptop"><span class="pill" id="pnum">1</span><span class="pname" id="pname">Observe</span></div>
+    <p class="pq" id="pq"></p>
+    <textarea id="answer" aria-label="Your answer"></textarea>
+    <div class="nav">
+      <button id="prev" type="button">← Previous</button>
+      <button id="next" type="button">Next →</button>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="solid" id="save" type="button">Save this circle</button>
+    <button id="copy" type="button">Copy as text</button>
+    <button id="print" type="button">Print</button>
+    <button id="fresh" type="button">New circle</button>
+  </div>
+  <p class="note" id="status"></p>
+
+  <div class="saved">
+    <h2>Saved circles</h2>
+    <div id="list"><p class="empty">Nothing saved yet. Fill one in and press save.</p></div>
+  </div>
+
+  <p class="verse">"The time is fulfilled, and the kingdom of God is at hand; repent and believe in the gospel." — Mark 1:15</p>
+
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+const STEPS=[
+ {n:1,name:"Observe",half:"hear",q:"What stood out to you?",hint:"Describe it. Don't explain it yet.",x:257,y:141},
+ {n:2,name:"Reflect",half:"hear",q:"What is the Lord saying to you in that?",hint:"Sit in the silence before you write.",x:280,y:214},
+ {n:3,name:"Discuss",half:"hear",q:"Who did you say it out loud to?",hint:"A name, and what you told them.",x:244,y:282},
+ {n:4,name:"Plan",half:"do",q:"What are you going to do about it?",hint:"One step, small enough to finish this week.",x:116,y:282},
+ {n:5,name:"Account",half:"do",q:"Who's going to ask you, and when?",hint:"A name and a day, written down.",x:80,y:214},
+ {n:6,name:"Act",half:"do",q:"How did it go?",hint:"Fill this in next week, first thing.",x:103,y:141}
+];
+const KEY="learning-circles";
+const mem={};
+const store={
+  async get(k){
+    if(window.storage){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null}catch(e){}}
+    try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){}
+    return mem[k]||null;
+  },
+  async set(k,v){
+    if(window.storage){try{await window.storage.set(k,JSON.stringify(v));return true}catch(e){}}
+    try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){}
+    mem[k]=v;return false;
+  }
+};
+
+let answers=["","","","","",""], current=0, saved=[], editingId=null;
+const $=id=>document.getElementById(id);
+
+function drawNodes(){
+  const g=$("nodes");
+  g.innerHTML=STEPS.map(s=>
+    `<g class="node ${s.half==='hear'?'hear':'do'}" data-i="${s.n-1}" role="button" tabindex="0" aria-label="Step ${s.n}, ${s.name}">
+      <circle cx="${s.x}" cy="${s.y}" r="29"/>
+      <text class="num" x="${s.x}" y="${s.y-5}" text-anchor="middle">${s.n}</text>
+      <text class="nm" x="${s.x}" y="${s.y+11}" text-anchor="middle">${s.name}</text>
+    </g>`).join("");
+  g.querySelectorAll(".node").forEach(n=>{
+    n.addEventListener("click",()=>select(+n.dataset.i));
+    n.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(+n.dataset.i)}});
+  });
+}
+
+function paint(){
+  document.querySelectorAll(".node").forEach(n=>{
+    const i=+n.dataset.i;
+    n.classList.toggle("done",answers[i].trim().length>0);
+    n.classList.toggle("on",i===current);
+  });
+  const s=STEPS[current];
+  $("pnum").textContent=s.n;
+  $("pnum").className="pill "+(s.half==="hear"?"hear":"do");
+  $("pname").textContent=s.name;
+  $("pq").textContent=s.q;
+  $("answer").value=answers[current];
+  $("answer").placeholder=s.hint;
+  $("caret").style.left=(s.x/360*100)+"%";
+}
+function select(i){current=i;paint();$("answer").focus({preventScroll:true});}
+
+$("answer").addEventListener("input",e=>{answers[current]=e.target.value;paint()});
+$("prev").addEventListener("click",()=>select((current+5)%6));
+$("next").addEventListener("click",()=>select((current+1)%6));
+
+function asText(){
+  let t="THE LEARNING CIRCLE\n";
+  if($("date").value)t+="Date: "+$("date").value+"\n";
+  if($("who").value)t+="Circle: "+$("who").value+"\n";
+  t+="Kairos: "+($("kairos").value||"—")+"\n\n";
+  STEPS.forEach((s,i)=>{t+=s.n+". "+s.name.toUpperCase()+" — "+s.q+"\n"+(answers[i].trim()||"(blank)")+"\n\n"});
+  return t;
+}
+$("copy").addEventListener("click",async()=>{
+  const t=asText();
+  try{await navigator.clipboard.writeText(t);say("Copied.")}
+  catch(e){const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="width:100%;min-height:200px;margin-top:10px";$("status").after(ta);ta.select();say("Clipboard blocked here — select the text below and copy.")}
+});
+$("print").addEventListener("click",()=>{buildSheet();window.print()});
+function buildSheet(){
+  $("sheet").innerHTML=`<h1 style="font-family:Spectral,serif">The Learning Circle</h1>
+  <p style="font-size:14px">${esc($("date").value)} ${esc($("who").value)}</p>
+  <p style="font-family:Spectral,serif;font-size:16px"><strong>Kairos:</strong> ${esc($("kairos").value)||"____________________"}</p>`+
+  STEPS.map((s,i)=>`<div class="sheetrow"><h3>${s.n}. ${s.name}</h3><p class="q">${s.q}</p><p class="a">${esc(answers[i])}</p></div>`).join("");
+}
+function esc(s){return (s||"").replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))}
+function say(m){$("status").textContent=m;clearTimeout(say.t);say.t=setTimeout(()=>$("status").textContent="",4000)}
+
+$("save").addEventListener("click",async()=>{
+  const rec={id:editingId||Date.now(),date:$("date").value,who:$("who").value,kairos:$("kairos").value,answers:[...answers]};
+  const at=saved.findIndex(r=>r.id===rec.id);
+  if(at>-1)saved[at]=rec;else saved.unshift(rec);
+  editingId=rec.id;
+  const ok=await store.set(KEY,saved);
+  renderList();
+  say(ok?"Saved.":"Saved for this session only — storage is unavailable here.");
+});
+$("fresh").addEventListener("click",()=>{
+  answers=["","","","","",""];editingId=null;current=0;
+  $("kairos").value="";$("who").value="";$("date").valueAsDate=new Date();
+  paint();say("Blank circle ready.");
+});
+function load(id){
+  const r=saved.find(x=>x.id===id);if(!r)return;
+  editingId=r.id;answers=[...r.answers];$("date").value=r.date||"";$("who").value=r.who||"";$("kairos").value=r.kairos||"";
+  current=0;paint();window.scrollTo({top:0,behavior:"smooth"});say("Opened.");
+}
+async function del(id){
+  saved=saved.filter(x=>x.id!==id);
+  if(editingId===id)editingId=null;
+  await store.set(KEY,saved);renderList();say("Deleted.");
+}
+function renderList(){
+  const l=$("list");
+  if(!saved.length){l.innerHTML='<p class="empty">Nothing saved yet. Fill one in and press save.</p>';return}
+  l.innerHTML=saved.map(r=>{
+    const done=r.answers.filter(a=>a.trim()).length;
+    return `<div class="item"><div class="m"><div class="k">${esc(r.kairos)||"Untitled circle"}</div>
+    <div class="d">${esc(r.date)||"no date"} · ${done} of 6 steps</div></div>
+    <button data-open="${r.id}" type="button">Open</button><button data-del="${r.id}" type="button">Delete</button></div>`}).join("");
+  l.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>load(+b.dataset.open));
+  l.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(+b.dataset.del));
+}
+
+(async function init(){
+  drawNodes();$("date").valueAsDate=new Date();paint();
+  const s=await store.get(KEY);if(Array.isArray(s)){saved=s;renderList()}
+})();
+</script>
