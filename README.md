@@ -1,39 +1,44 @@
 # The Learning Circle
 
-A fillable Kairos learning circle. One HTML file, no server, no build step.
+A fillable Kairos learning circle for small group leaders, built for
+Kingdom Culture Phoenix.
 
-Once step 7 below is done, this is your link to share:
-**https://dvazjr.github.io/learning-circle/**
+**Use it here: https://dvazjr.github.io/learning-circle/**
 
-## Put it online with GitHub Pages (free)
+Name the kairos, then tap any of the six steps and write your answer.
+Observe, Reflect and Discuss are the hearing half — repent. Plan, Account
+and Act are the doing half — believe. Steps fill in with color as you
+answer them, so a circle that stalls in the same place every week is easy
+to spot.
 
-1. Make a free account at github.com if you don't have one.
-2. Click **+** (top right) → **New repository**. Name it `learning-circle`. Set it to **Public**. Click **Create repository**.
-3. On the next screen click **uploading an existing file**.
-4. Drag in all five files: `index.html`, `manifest.json`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`. Click **Commit changes**.
-5. Go to **Settings** → **Pages** (left sidebar).
-6. Under Source pick **Deploy from a branch**, branch **main**, folder **/ (root)**. Click **Save**.
-7. Wait about a minute, then reload that page. Your link appears at the top, and it will be:
-   `https://dvazjr.github.io/learning-circle/`
+Print lays the whole circle out as a handout, with or without answers.
+Copy as text drops it into a message or an email.
 
-Share that link with anyone. Nothing to install.
+## Add it to your phone
 
-## Changing it later
+iPhone: open the link in Safari, tap Share, then Add to Home Screen.
+Android: open in Chrome, tap the menu, then Add to Home screen.
 
-Open `index.html` in your repo, click the pencil icon, edit, and commit. The live
-site updates in about a minute. The six questions and the placeholder hints are in
-the `STEPS` list near the bottom of the file — that's the easiest thing to reword.
+It opens full screen like an app. On iPhone this also keeps your saved
+circles from expiring, so do it if you plan to use it week to week.
 
-## Add it to a phone home screen
+## Where your answers go
 
-iPhone: open the link in Safari → Share → Add to Home Screen.
-Android: open in Chrome → menu → Add to Home screen.
+Create an account and your circles follow you to any device you sign in on.
+They're yours alone — no other leader can see them.
 
-It opens full screen with the circle icon, like an app.
+You can also tap "Just this device" and skip the account. Then circles are
+saved in that browser only: they don't move between your phone and laptop,
+and clearing browser data erases them.
 
-## What people should know
+Setting up the account side is a one-time job, described in SETUP-SYNC.md.
 
-Saved circles are stored in each person's own browser, on that one device. They are
-private to that person — you cannot see what anyone wrote. They do not sync between
-a phone and a laptop, and clearing browser data erases them. Tell your leaders to use
-Print or Copy as text if they want a copy that lasts.
+## Editing it
+
+Everything is one file: `index.html`. No server, no build step. The six
+questions and their prompts are in the `STEPS` list near the bottom of the
+file — open it, click the pencil, edit, commit. The live site updates in
+about a minute.
+
+"The time is fulfilled, and the kingdom of God is at hand;
+repent and believe in the gospel." — Mark 1:15
