@@ -147,9 +147,9 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
   <h1>The Learning Circle</h1>
   <p class="sub">Hear it. Do it.</p>
 
-  <div class="acct" id="acct" hidden>
+  <div class="acct" id="acct">
     <div id="signedout">
-      <p class="note" style="margin:0 0 10px">Sign in and your circles follow you to any device.</p>
+      <p class="note" style="margin:0 0 10px">Sign in to open your circle. Your entries are private to you and follow you to any device.</p>
       <div class="row">
         <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="email" placeholder="you@church.org"></div>
         <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password" placeholder="At least 6 characters"></div>
@@ -157,7 +157,6 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
       <div class="actions" style="margin-top:12px">
         <button class="solid" id="signin" type="button">Sign in</button>
         <button id="signup" type="button">Create account</button>
-        <button id="guest" type="button">Just this device</button>
       </div>
       <p class="note" id="authmsg"></p>
     </div>
@@ -172,6 +171,7 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
     </div>
   </div>
 
+  <div id="app" hidden>
   <div class="head">
     <div class="row">
       <div class="field"><label for="date">Date</label><input type="date" id="date"></div>
@@ -227,6 +227,9 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
   <p class="verse">"The time is fulfilled, and the kingdom of God is at hand; repent and believe in the gospel." — Mark 1:15</p>
 
   <div class="sheet" id="sheet"></div>
+  </div>
+
+  <p class="note" style="text-align:center">build 4 · sign-in required</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -245,7 +248,6 @@ const STEPS=[
  {n:6,name:"Act",half:"do",q:"How did it go?",hint:"Fill this in next week, first thing.",x:103,y:141}
 ];
 const KEY="learning-circles";
-const GUEST="learning-circle-guest";
 const mem={};
 const local={
   async get(k){
@@ -412,6 +414,7 @@ function renderList(){
 function authSay(m){$("authmsg").textContent=m||""}
 async function showAccount(session){
   cloud=!!session;
+  $("app").hidden=!session;
   $("signedout").hidden=!!session;
   $("signedin").hidden=!session;
   if(session){
@@ -419,12 +422,16 @@ async function showAccount(session){
     const mine=(await local.get(KEY))||[];
     $("migrate").hidden=mine.length===0;
     if(mine.length)$("domigrate").textContent="Move "+mine.length+" circle"+(mine.length>1?"s":"")+" from this device into your account";
+    editingId=null;
+    await refresh();
+  }else{
+    saved=[];editingId=null;
+    answers=["","","","","",""];current=0;
+    $("kairos").value="";$("who").value="";
+    paint();renderList();
   }
-  editingId=null;
-  await refresh();
 }
 if(sb){
-  $("acct").hidden=false;
   $("signin").addEventListener("click",async()=>{
     authSay("Signing in…");
     const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pw").value});
@@ -441,9 +448,6 @@ if(sb){
   $("signout").addEventListener("click",async()=>{
     await sb.auth.signOut();await showAccount(null);say("Signed out.");
   });
-  $("guest").addEventListener("click",async()=>{
-    await local.set(GUEST,true);$("acct").hidden=true;say("Using this device only.");
-  });
   $("domigrate").addEventListener("click",async()=>{
     const mine=(await local.get(KEY))||[];
     $("domigrate").disabled=true;$("domigrate").textContent="Moving…";
@@ -454,15 +458,23 @@ if(sb){
       await refresh();say("Moved "+mine.length+" into your account.");
     }catch(e){$("domigrate").disabled=false;say("Couldn't move them. "+(e.message||""))}
   });
+}else{
+  ["signin","signup"].forEach(b=>$(b).disabled=true);
+  $("email").disabled=true;$("pw").disabled=true;
+  if(!window.supabase){
+    authSay("Sign-in can't start: the sign-in library didn't load. Check your connection, or whether your network is blocking cdn.jsdelivr.net.");
+  }else if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+    authSay("Sign-in isn't set up yet. Add your project URL and key in index.html to switch it on.");
+  }else{
+    authSay("Sign-in couldn't start. Try reloading the page.");
+  }
 }
 
 (async function init(){
   drawNodes();$("date").valueAsDate=new Date();paint();
   if(sb){
     const {data}=await sb.auth.getSession();
-    if(data.session){await showAccount(data.session);return}
-    if(await local.get(GUEST))$("acct").hidden=true;
+    await showAccount(data.session||null);
   }
-  await refresh();
 })();
 </script>
