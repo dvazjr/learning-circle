@@ -50,6 +50,8 @@ input[type=text],input[type=email],input[type=password],input[type=date],textare
   padding:11px 13px;line-height:1.5;
 }
 .acct{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px}
+#signedout .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#signedout .actions button{width:100%}
 ::placeholder{color:var(--muted);opacity:1}
 textarea{resize:vertical;min-height:110px}
 input:focus,textarea:focus,button:focus-visible,[role=button]:focus-visible{
@@ -59,6 +61,9 @@ input:focus,textarea:focus,button:focus-visible,[role=button]:focus-visible{
 .row{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:460px){.row{grid-template-columns:1fr 1fr}}
 .row>div{min-width:0}
+.row>.field{display:flex;flex-direction:column}
+.row>.field+.field{margin-top:0}
+.row>.field input{margin-top:auto}
 input[type=date]{-webkit-appearance:none;appearance:none;display:block;max-width:100%;height:44px}
 .field+.field{margin-top:12px}
 
@@ -229,7 +234,7 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
   <div class="sheet" id="sheet"></div>
   </div>
 
-  <p class="note" style="text-align:center">build 4 · sign-in required</p>
+  <p class="note" style="text-align:center">build 5 · sign-in required</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
