@@ -45,10 +45,11 @@ h1{font-family:Spectral,Georgia,serif;font-weight:600;font-size:28px;line-height
 .sub{font-family:Spectral,Georgia,serif;font-style:italic;color:var(--ink-soft);margin:0 0 20px;font-size:16px}
 label{display:block;font-size:13px;font-weight:500;color:var(--ink-soft);margin-bottom:5px}
 input,textarea,button,select{font-family:inherit;font-size:16px;color:var(--ink)}
-input[type=text],input[type=date],textarea{
+input[type=text],input[type=email],input[type=password],input[type=date],textarea{
   width:100%;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);
   padding:11px 13px;line-height:1.5;
 }
+.acct{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px}
 ::placeholder{color:var(--muted);opacity:1}
 textarea{resize:vertical;min-height:110px}
 input:focus,textarea:focus,button:focus-visible,[role=button]:focus-visible{
@@ -132,7 +133,7 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
   }
   body{background:#fff}
   .wrap{max-width:none;padding:0}
-  .panel,.actions,.saved,.nav,svg,.head textarea,.head input{display:none}
+  .panel,.actions,.saved,.nav,svg,.head textarea,.head input,.acct{display:none}
   .sheet{display:block}
   .sheetrow{border-bottom:1px solid #ccc;padding:10px 0;break-inside:avoid}
   .sheetrow h3{font-family:Spectral,serif;font-size:16px;margin:0 0 2px}
@@ -145,6 +146,31 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
 <div class="wrap">
   <h1>The Learning Circle</h1>
   <p class="sub">Hear it. Do it.</p>
+
+  <div class="acct" id="acct" hidden>
+    <div id="signedout">
+      <p class="note" style="margin:0 0 10px">Sign in and your circles follow you to any device.</p>
+      <div class="row">
+        <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="email" placeholder="you@church.org"></div>
+        <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password" placeholder="At least 6 characters"></div>
+      </div>
+      <div class="actions" style="margin-top:12px">
+        <button class="solid" id="signin" type="button">Sign in</button>
+        <button id="signup" type="button">Create account</button>
+        <button id="guest" type="button">Just this device</button>
+      </div>
+      <p class="note" id="authmsg"></p>
+    </div>
+    <div id="signedin" hidden>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="note" style="margin:0;flex:1" id="whoami"></span>
+        <button id="signout" type="button">Sign out</button>
+      </div>
+      <div id="migrate" hidden style="margin-top:10px">
+        <button id="domigrate" type="button"></button>
+      </div>
+    </div>
+  </div>
 
   <div class="head">
     <div class="row">
@@ -203,7 +229,13 @@ button.solid{background:var(--mark);color:var(--mark-on);border-color:var(--mark
   <div class="sheet" id="sheet"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ---- PASTE YOUR TWO SUPABASE VALUES HERE ---- */
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+/* --------------------------------------------- */
+
 const STEPS=[
  {n:1,name:"Observe",half:"hear",q:"What stood out to you?",hint:"Describe it. Don't explain it yet.",x:257,y:141},
  {n:2,name:"Reflect",half:"hear",q:"What is the Lord saying to you in that?",hint:"Sit in the silence before you write.",x:280,y:214},
@@ -213,8 +245,9 @@ const STEPS=[
  {n:6,name:"Act",half:"do",q:"How did it go?",hint:"Fill this in next week, first thing.",x:103,y:141}
 ];
 const KEY="learning-circles";
+const GUEST="learning-circle-guest";
 const mem={};
-const store={
+const local={
   async get(k){
     if(window.storage){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null}catch(e){}}
     try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){}
@@ -224,6 +257,53 @@ const store={
     if(window.storage){try{await window.storage.set(k,JSON.stringify(v));return true}catch(e){}}
     try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){}
     mem[k]=v;return false;
+  }
+};
+
+const sb = (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let cloud=false;
+
+const newId=()=>(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()));
+
+const repo={
+  async list(){
+    if(cloud){
+      const {data,error}=await sb.from("circles").select("*").order("updated_at",{ascending:false});
+      if(error)throw error;
+      return data.map(r=>({id:r.id,date:r.date||"",who:r.who||"",kairos:r.kairos||"",answers:r.answers||["","","","","",""]}));
+    }
+    return (await local.get(KEY))||[];
+  },
+  async save(rec){
+    if(cloud){
+      const row={date:rec.date,who:rec.who,kairos:rec.kairos,answers:rec.answers,updated_at:new Date().toISOString()};
+      if(rec.id){
+        const {error}=await sb.from("circles").update(row).eq("id",rec.id);
+        if(error)throw error;
+        return rec.id;
+      }
+      const {data:u}=await sb.auth.getUser();
+      const {data,error}=await sb.from("circles").insert({...row,user_id:u.user.id}).select("id").single();
+      if(error)throw error;
+      return data.id;
+    }
+    const all=(await local.get(KEY))||[];
+    const id=rec.id||newId();
+    const at=all.findIndex(r=>String(r.id)===String(id));
+    const saved={...rec,id};
+    if(at>-1)all[at]=saved; else all.unshift(saved);
+    await local.set(KEY,all);
+    return id;
+  },
+  async remove(id){
+    if(cloud){
+      const {error}=await sb.from("circles").delete().eq("id",id);
+      if(error)throw error;
+      return;
+    }
+    const all=((await local.get(KEY))||[]).filter(r=>String(r.id)!==String(id));
+    await local.set(KEY,all);
   }
 };
 
@@ -289,13 +369,12 @@ function esc(s){return (s||"").replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"
 function say(m){$("status").textContent=m;clearTimeout(say.t);say.t=setTimeout(()=>$("status").textContent="",4000)}
 
 $("save").addEventListener("click",async()=>{
-  const rec={id:editingId||Date.now(),date:$("date").value,who:$("who").value,kairos:$("kairos").value,answers:[...answers]};
-  const at=saved.findIndex(r=>r.id===rec.id);
-  if(at>-1)saved[at]=rec;else saved.unshift(rec);
-  editingId=rec.id;
-  const ok=await store.set(KEY,saved);
-  renderList();
-  say(ok?"Saved.":"Saved for this session only — storage is unavailable here.");
+  const rec={id:editingId,date:$("date").value,who:$("who").value,kairos:$("kairos").value,answers:[...answers]};
+  try{
+    editingId=await repo.save(rec);
+    await refresh();
+    say(cloud?"Saved to your account.":"Saved on this device.");
+  }catch(e){say("Couldn't save. "+(e.message||"Check your connection and try again."))}
 });
 $("fresh").addEventListener("click",()=>{
   answers=["","","","","",""];editingId=null;current=0;
@@ -303,14 +382,20 @@ $("fresh").addEventListener("click",()=>{
   paint();say("Blank circle ready.");
 });
 function load(id){
-  const r=saved.find(x=>x.id===id);if(!r)return;
+  const r=saved.find(x=>String(x.id)===String(id));if(!r)return;
   editingId=r.id;answers=[...r.answers];$("date").value=r.date||"";$("who").value=r.who||"";$("kairos").value=r.kairos||"";
   current=0;paint();window.scrollTo({top:0,behavior:"smooth"});say("Opened.");
 }
 async function del(id){
-  saved=saved.filter(x=>x.id!==id);
-  if(editingId===id)editingId=null;
-  await store.set(KEY,saved);renderList();say("Deleted.");
+  try{
+    await repo.remove(id);
+    if(String(editingId)===String(id))editingId=null;
+    await refresh();say("Deleted.");
+  }catch(e){say("Couldn't delete. "+(e.message||""))}
+}
+async function refresh(){
+  try{saved=await repo.list()}catch(e){saved=[];say("Couldn't load your circles. "+(e.message||""))}
+  renderList();
 }
 function renderList(){
   const l=$("list");
@@ -320,12 +405,64 @@ function renderList(){
     return `<div class="item"><div class="m"><div class="k">${esc(r.kairos)||"Untitled circle"}</div>
     <div class="d">${esc(r.date)||"no date"} · ${done} of 6 steps</div></div>
     <button data-open="${r.id}" type="button">Open</button><button data-del="${r.id}" type="button">Delete</button></div>`}).join("");
-  l.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>load(+b.dataset.open));
-  l.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(+b.dataset.del));
+  l.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>load(b.dataset.open));
+  l.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(b.dataset.del));
+}
+
+function authSay(m){$("authmsg").textContent=m||""}
+async function showAccount(session){
+  cloud=!!session;
+  $("signedout").hidden=!!session;
+  $("signedin").hidden=!session;
+  if(session){
+    $("whoami").textContent="Signed in as "+session.user.email;
+    const mine=(await local.get(KEY))||[];
+    $("migrate").hidden=mine.length===0;
+    if(mine.length)$("domigrate").textContent="Move "+mine.length+" circle"+(mine.length>1?"s":"")+" from this device into your account";
+  }
+  editingId=null;
+  await refresh();
+}
+if(sb){
+  $("acct").hidden=false;
+  $("signin").addEventListener("click",async()=>{
+    authSay("Signing in…");
+    const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pw").value});
+    if(error){authSay(error.message);return}
+    authSay("");$("pw").value="";await showAccount(data.session);
+  });
+  $("signup").addEventListener("click",async()=>{
+    authSay("Creating your account…");
+    const {data,error}=await sb.auth.signUp({email:$("email").value.trim(),password:$("pw").value});
+    if(error){authSay(error.message);return}
+    if(!data.session){authSay("Check your email to confirm, then sign in.");return}
+    authSay("");$("pw").value="";await showAccount(data.session);
+  });
+  $("signout").addEventListener("click",async()=>{
+    await sb.auth.signOut();await showAccount(null);say("Signed out.");
+  });
+  $("guest").addEventListener("click",async()=>{
+    await local.set(GUEST,true);$("acct").hidden=true;say("Using this device only.");
+  });
+  $("domigrate").addEventListener("click",async()=>{
+    const mine=(await local.get(KEY))||[];
+    $("domigrate").disabled=true;$("domigrate").textContent="Moving…";
+    try{
+      for(const r of mine)await repo.save({...r,id:null});
+      await local.set(KEY,[]);
+      $("migrate").hidden=true;
+      await refresh();say("Moved "+mine.length+" into your account.");
+    }catch(e){$("domigrate").disabled=false;say("Couldn't move them. "+(e.message||""))}
+  });
 }
 
 (async function init(){
   drawNodes();$("date").valueAsDate=new Date();paint();
-  const s=await store.get(KEY);if(Array.isArray(s)){saved=s;renderList()}
+  if(sb){
+    const {data}=await sb.auth.getSession();
+    if(data.session){await showAccount(data.session);return}
+    if(await local.get(GUEST))$("acct").hidden=true;
+  }
+  await refresh();
 })();
 </script>
